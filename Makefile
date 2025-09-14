@@ -12,17 +12,21 @@ test:
 test-cov:
 	uv run pytest --cov=bvp_scraper --cov-report=html --cov-report=term
 
-# Lint code
+# Lint and type check code
 lint:
-	uv run flake8 bvp_scraper tests
+	uv run ruff check bvp_scraper tests examples
 
 # Format code
 format:
-	uv run black bvp_scraper tests examples
+	uv run ruff format bvp_scraper tests examples
 
-# Type checking
+# Fix linting issues automatically
+lint-fix:
+	uv run ruff check bvp_scraper tests examples --fix
+
+# Type checking (using ruff)
 type-check:
-	uv run mypy bvp_scraper
+	uv run ruff check bvp_scraper tests examples --select=TCH
 
 # Run all quality checks
 check: lint type-check test
@@ -58,7 +62,8 @@ help:
 	@echo "  install      - Install dependencies"
 	@echo "  test         - Run tests"
 	@echo "  test-cov     - Run tests with coverage"
-	@echo "  lint         - Lint code"
+	@echo "  lint         - Lint and type check code"
+	@echo "  lint-fix     - Fix linting issues automatically"
 	@echo "  format       - Format code"
 	@echo "  type-check   - Run type checking"
 	@echo "  check        - Run all quality checks"

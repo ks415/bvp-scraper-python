@@ -53,11 +53,12 @@ uv run pytest
 # Run with coverage
 uv run pytest --cov=bvp_scraper
 
-# Format code
-uv run black .
+# Format and lint code
+uv run ruff format .
+uv run ruff check .
 
-# Type checking
-uv run mypy bvp_scraper
+# Fix linting issues automatically
+uv run ruff check . --fix
 ```
 
 ### Alternative: Using Makefile
