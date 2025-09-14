@@ -17,5 +17,7 @@ __author__ = "Port to Python (Original by shimomo)"
 
 from .scraper import Scraper
 from .scraper_core import ScraperCore
+from .scrapers.program_scraper import ProgramScraper
+from .scrapers.result_scraper import ResultScraper
 
-__all__ = ["Scraper", "ScraperCore"]
+__all__ = ["Scraper", "ScraperCore", "ResultScraper", "ProgramScraper"]
