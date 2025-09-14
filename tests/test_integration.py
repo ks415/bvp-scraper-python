@@ -72,6 +72,8 @@ class TestIntegration:
         
         with patch.object(Scraper, 'get_instance') as mock_get_instance:
             mock_instance = Mock()
+            mock_scraper_core = Mock()
+            mock_instance._scraper_core = mock_scraper_core
             mock_get_instance.return_value = mock_instance
             
             # Test all static methods
@@ -82,8 +84,8 @@ class TestIntegration:
             Scraper.scrape_stadiums(test_date)
             
             # Verify all were called
-            assert mock_instance.scrape_programs.called
-            assert mock_instance.scrape_previews.called
-            assert mock_instance.scrape_odds.called
-            assert mock_instance.scrape_results.called
-            assert mock_instance.scrape_stadiums.called
+            assert mock_scraper_core.scrape_programs.called
+            assert mock_scraper_core.scrape_previews.called
+            assert mock_scraper_core.scrape_odds.called
+            assert mock_scraper_core.scrape_results.called
+            assert mock_scraper_core.scrape_stadiums.called

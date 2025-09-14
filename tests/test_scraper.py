@@ -49,14 +49,16 @@ class TestScraper:
         
         with patch.object(Scraper, 'get_instance') as mock_get_instance:
             mock_instance = Mock()
+            mock_scraper_core = Mock()
+            mock_instance._scraper_core = mock_scraper_core
             mock_get_instance.return_value = mock_instance
             
             # Test static method calls
             Scraper.scrape_programs(test_date, 1, 1)
-            mock_instance.scrape_programs.assert_called_once_with(test_date, 1, 1)
+            mock_scraper_core.scrape_programs.assert_called_once_with(test_date, 1, 1)
             
             Scraper.scrape_odds(test_date, 1, 1)
-            mock_instance.scrape_odds.assert_called_once_with(test_date, 1, 1)
+            mock_scraper_core.scrape_odds.assert_called_once_with(test_date, 1, 1)
     
     def test_initialization_with_custom_core(self):
         """Test initialization with custom scraper core."""

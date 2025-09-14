@@ -77,40 +77,40 @@ class Scraper:
         cls._instance = None
     
     # Static method shortcuts for convenience
-    @classmethod
-    def scrape_programs(cls, race_date: Union[date, datetime, str],
+    @staticmethod
+    def scrape_programs(race_date: Union[date, datetime, str],
                         race_stadium_number: Optional[int] = None,
                         race_number: Optional[int] = None) -> Dict[str, Any]:
         """Scrape race programs."""
-        instance = cls.get_instance()
+        instance = Scraper.get_instance()
         return instance._scraper_core.scrape_programs(race_date, race_stadium_number, race_number)
     
-    @classmethod 
-    def scrape_previews(cls, race_date: Union[date, datetime, str],
+    @staticmethod
+    def scrape_previews(race_date: Union[date, datetime, str],
                         race_stadium_number: Optional[int] = None,
                         race_number: Optional[int] = None) -> Dict[str, Any]:
         """Scrape race previews."""
-        instance = cls.get_instance()
+        instance = Scraper.get_instance()
         return instance._scraper_core.scrape_previews(race_date, race_stadium_number, race_number)
     
-    @classmethod
-    def scrape_odds(cls, race_date: Union[date, datetime, str],
+    @staticmethod
+    def scrape_odds(race_date: Union[date, datetime, str],
                     race_stadium_number: Optional[int] = None,
                     race_number: Optional[int] = None) -> Dict[str, Any]:
         """Scrape all odds."""
-        instance = cls.get_instance()
+        instance = Scraper.get_instance()
         return instance._scraper_core.scrape_odds(race_date, race_stadium_number, race_number)
     
-    @classmethod
-    def scrape_results(cls, race_date: Union[date, datetime, str],
+    @staticmethod
+    def scrape_results(race_date: Union[date, datetime, str],
                        race_stadium_number: Optional[int] = None,
                        race_number: Optional[int] = None) -> Dict[str, Any]:
         """Scrape race results."""
-        instance = cls.get_instance()
+        instance = Scraper.get_instance()
         return instance._scraper_core.scrape_results(race_date, race_stadium_number, race_number)
     
-    @classmethod
-    def scrape_stadiums(cls, race_date: Union[date, datetime, str]) -> Dict[str, Any]:
+    @staticmethod
+    def scrape_stadiums(race_date: Union[date, datetime, str]) -> Dict[str, Any]:
         """Scrape stadium information."""
-        instance = cls.get_instance()
+        instance = Scraper.get_instance()
         return instance._scraper_core.scrape_stadiums(race_date)
