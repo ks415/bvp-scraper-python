@@ -95,7 +95,7 @@ results = Scraper.scrape_results('2024-01-01')
 ## Features
 
 - **Program Scraping**: Get race programs with boat and racer information
-- **Preview Scraping**: Get pre-race information and weather conditions  
+- **Preview Scraping**: Get pre-race information and weather conditions
 - **Odds Scraping**: Get all betting odds (Win, Place, Exacta, Quinella, etc.)
 - **Result Scraping**: Get race results and payouts
 - **Stadium Scraping**: Get stadium information
@@ -104,20 +104,21 @@ results = Scraper.scrape_results('2024-01-01')
 
 This Python port maintains API compatibility with the original PHP library while leveraging Python-specific improvements:
 
-| Feature | Original PHP | Python Port |
-|---------|-------------|-------------|
-| **Core Architecture** | ✅ Same design patterns | ✅ Maintained with Python idioms |
-| **API Methods** | ✅ `scrapePrograms()` etc. | ✅ `scrape_programs()` (snake_case) |
-| **Error Handling** | ✅ Exception based | ✅ Enhanced with type hints |
-| **HTTP Client** | Symfony BrowserKit | `requests` + `BeautifulSoup4` |
-| **Date Handling** | Carbon | `datetime` + `dateutil` |
-| **Retry Logic** | Custom implementation | `tenacity` library |
-| **Type Safety** | PHP DocBlocks | Python type hints |
-| **Testing** | PHPUnit | pytest |
+| Feature               | Original PHP               | Python Port                         |
+| --------------------- | -------------------------- | ----------------------------------- |
+| **Core Architecture** | ✅ Same design patterns    | ✅ Maintained with Python idioms    |
+| **API Methods**       | ✅ `scrapePrograms()` etc. | ✅ `scrape_programs()` (snake_case) |
+| **Error Handling**    | ✅ Exception based         | ✅ Enhanced with type hints         |
+| **HTTP Client**       | Symfony BrowserKit         | `requests` + `BeautifulSoup4`       |
+| **Date Handling**     | Carbon                     | `datetime` + `dateutil`             |
+| **Retry Logic**       | Custom implementation      | `tenacity` library                  |
+| **Type Safety**       | PHP DocBlocks              | Python type hints                   |
+| **Testing**           | PHPUnit                    | pytest                              |
 
 ## Equivalent Usage
 
 **Original PHP:**
+
 ```php
 use BVP\Scraper\Scraper;
 
@@ -126,6 +127,7 @@ $odds = Scraper::scrapeOdds('2024-01-01', 1, 1);
 ```
 
 **Python Port:**
+
 ```python
 from bvp_scraper import Scraper
 

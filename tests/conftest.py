@@ -2,9 +2,10 @@
 Test configuration and fixtures.
 """
 
+from datetime import date
+
 import pytest
 import requests_mock
-from datetime import date
 
 
 @pytest.fixture

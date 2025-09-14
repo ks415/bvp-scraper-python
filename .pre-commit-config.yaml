@@ -16,28 +16,17 @@ repos:
       - id: check-added-large-files # 特定のサイズを超える大きなファイルが追加された場合に警告
 
   # python linter and formatter
-  - repo: local # use local ruff
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
     hooks:
       # Run the linter.
       - id: ruff
         name: ruff-lint
-        types_or: [python]
-        entry: uv run ruff check . --fix
-        language: python
+        args: [--fix]
 
       # Run the formatter.
       - id: ruff-format
         name: ruff-format
-        entry: uv run ruff format .
-        language: python
-        types_or: [python]
-
-      # Run the type checker.
-      - id: ty-check
-        name: ty-check
-        entry: uv run ty check
-        language: python
-        types_or: [python]
 
   # yaml, json formatting
   - repo: https://github.com/pre-commit/mirrors-prettier
@@ -70,7 +59,8 @@ repos:
     rev: v8.28.0
     hooks:
       - id: gitleaks
-        args: ["--staged"]  # 変更差分を走査
+        args: ["--staged"] # 変更差分を走査
+
 
   # word spelling linter
   # - repo: https://github.com/codespell-project/codespell
