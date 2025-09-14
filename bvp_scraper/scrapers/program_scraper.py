@@ -136,23 +136,84 @@ class ProgramScraper(BaseScraper):
     ) -> Optional[Dict[str, Any]]:
         """Extract data for a single boat."""
 
-        # CSS selectors for boat data
-        selectors = {
-            "boat_number": f"{tbody_selector} tr:nth-child(1) td:nth-child(1)",
-            "racer_name": f"{tbody_selector} tr:nth-child(1) td:nth-child(3) div:nth-child(2) a",
-            "racer_number_class": f"{tbody_selector} tr:nth-child(1) td:nth-child(3) div:nth-child(1)",
-            "racer_branch_birthplace_age_weight": f"{tbody_selector} tr:nth-child(1) td:nth-child(3) div:nth-child(3)",
-            "racer_flying_late_start_timing": f"{tbody_selector} tr:nth-child(1) td:nth-child(4)",
-            "racer_national_top123_percent": f"{tbody_selector} tr:nth-child(1) td:nth-child(5)",
-            "racer_local_top123_percent": f"{tbody_selector} tr:nth-child(1) td:nth-child(6)",
-            "racer_assigned_motor_number_top23_percent": f"{tbody_selector} tr:nth-child(1) td:nth-child(7)",
-            "racer_assigned_boat_number_top23_percent": f"{tbody_selector} tr:nth-child(1) td:nth-child(8)",
+        # Get the tbody element directly instead of using complex CSS selectors
+        base_selector = f"body main div div div div:nth-child(2) div:nth-child({self.base_level + 5}) table"
+        table = soup.select_one(base_selector)
+
+        if not table:
+            return None
+
+        tbodies = table.find_all("tbody")
+        if default_boat_number > len(tbodies):
+            return None
+
+        tbody = tbodies[default_boat_number - 1]  # 0-indexed
+        rows = tbody.find_all("tr")
+
+        if not rows:
+            return None
+
+        first_row = rows[0]
+        cells = first_row.find_all("td")
+
+        if len(cells) < 8:  # Minimum expected cells
+            return None
+
+        # Extract raw data directly from cells
+        raw_data = {
+            "boat_number": cells[0].get_text().strip() if len(cells) > 0 else None,
+            "racer_info_cell": cells[2]
+            if len(cells) > 2
+            else None,  # Full racer info cell
+            "racer_flying_late_start_timing": cells[3].get_text().strip()
+            if len(cells) > 3
+            else None,
+            "racer_national_top123_percent": cells[4].get_text().strip()
+            if len(cells) > 4
+            else None,
+            "racer_local_top123_percent": cells[5].get_text().strip()
+            if len(cells) > 5
+            else None,
+            "racer_assigned_motor_number_top23_percent": cells[6].get_text().strip()
+            if len(cells) > 6
+            else None,
+            "racer_assigned_boat_number_top23_percent": cells[7].get_text().strip()
+            if len(cells) > 7
+            else None,
         }
 
-        # Extract raw data
-        raw_data = {}
-        for key, selector in selectors.items():
-            raw_data[key] = self.filter_xpath_text(soup, selector)
+        # Extract detailed racer information from the racer info cell
+        racer_name = None
+        racer_number = None
+        racer_class_number = None
+        racer_branch_birthplace_age_weight = None
+
+        if raw_data["racer_info_cell"]:
+            divs = raw_data["racer_info_cell"].find_all("div")
+            if len(divs) >= 3:
+                # div[0]: レーサー番号とクラス
+                number_class_text = divs[0].get_text().strip()
+                if "/" in number_class_text:
+                    parts = number_class_text.split("/")
+                    racer_number = parts[0].strip()
+                    racer_class_number = parts[1].strip()
+
+                # div[1]: レーサー名
+                racer_name = divs[1].get_text().strip()
+
+                # div[2]: 支部/出身地、年齢、体重
+                racer_branch_birthplace_age_weight = divs[2].get_text().strip()
+
+        # Update raw_data with extracted information
+        raw_data.update(
+            {
+                "racer_name": racer_name,
+                "racer_number_class": f"{racer_number} {racer_class_number}"
+                if racer_number and racer_class_number
+                else None,
+                "racer_branch_birthplace_age_weight": racer_branch_birthplace_age_weight,
+            }
+        )
 
         # Parse boat number
         boat_number = self._parse_int(raw_data["boat_number"]) or default_boat_number
@@ -297,13 +358,34 @@ class ProgramScraper(BaseScraper):
     def _parse_branch_birthplace_age_weight(
         self, text: Optional[str]
     ) -> tuple[Optional[int], Optional[int], Optional[int], Optional[float]]:
-        """Parse branch, birthplace, age, and weight."""
+        """Parse branch, birthplace, age, and weight from personal info text."""
         if not text:
             return None, None, None, None
 
-        # This would need specific logic based on the actual format
-        # For now, return None values as placeholders
-        return None, None, None, None
+        # Clean the text
+        text = re.sub(r"\s+", " ", text.strip())
+
+        # Extract branch and birthplace
+        racer_branch_number = None
+        racer_birthplace_number = None
+
+        # Extract age
+        racer_age = None
+        age_match = re.search(r"(\d+)歳", text)
+        if age_match:
+            racer_age = int(age_match.group(1))
+
+        # Extract weight
+        racer_weight = None
+        weight_match = re.search(r"(\d+\.?\d*)kg", text)
+        if weight_match:
+            racer_weight = float(weight_match.group(1))
+
+        # TODO: Implement branch and birthplace number mapping if needed
+        # For now, we'll return the text as-is for branch_birthplace
+        # In a full implementation, you'd map prefecture names to numbers
+
+        return racer_branch_number, racer_birthplace_number, racer_age, racer_weight
 
     def _parse_flying_late_start_timing(
         self, text: Optional[str]
@@ -312,8 +394,34 @@ class ProgramScraper(BaseScraper):
         if not text:
             return None, None, None
 
-        # This would need specific logic based on the actual format
-        return None, None, None
+        # Clean the text and split by lines
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+
+        racer_flying_count = None
+        racer_late_count = None
+        racer_average_start_timing = None
+
+        # Parse each line
+        for line in lines:
+            if line.startswith("F"):
+                # Flying count
+                flying_match = re.search(r"F(\d+)", line)
+                if flying_match:
+                    racer_flying_count = int(flying_match.group(1))
+            elif line.startswith("L"):
+                # Late count
+                late_match = re.search(r"L(\d+)", line)
+                if late_match:
+                    racer_late_count = int(late_match.group(1))
+            else:
+                # Try to parse as start timing (decimal number)
+                try:
+                    timing = float(line)
+                    racer_average_start_timing = timing
+                except ValueError:
+                    continue
+
+        return racer_flying_count, racer_late_count, racer_average_start_timing
 
     def _parse_top123_percent(
         self, text: Optional[str]
@@ -322,11 +430,20 @@ class ProgramScraper(BaseScraper):
         if not text:
             return None, None, None
 
-        # Look for percentage patterns
-        percentages = re.findall(r"(\d+(?:\.\d+)?)%?", text)
-        percentages = [float(p) for p in percentages[:3]]  # Take first 3
+        # Clean the text and split by lines
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
 
-        # Pad with None if not enough values
+        percentages = []
+
+        # Extract all decimal numbers from the lines
+        for line in lines:
+            try:
+                percentage = float(line)
+                percentages.append(percentage)
+            except ValueError:
+                continue
+
+        # Ensure we have exactly 3 values, pad with None if needed
         while len(percentages) < 3:
             percentages.append(None)
 
@@ -339,13 +456,31 @@ class ProgramScraper(BaseScraper):
         if not text:
             return None, None, None
 
-        # Extract motor number (usually first number)
-        number_match = re.search(r"(\d+)", text)
-        motor_number = int(number_match.group(1)) if number_match else None
+        # Clean the text and split by lines
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
 
-        # Extract percentages
-        percentages = re.findall(r"(\d+(?:\.\d+)?)%?", text)
-        percentages = [float(p) for p in percentages[1:3]]  # Skip first (motor number)
+        motor_number = None
+        percentages = []
+
+        for line in lines:
+            # First line should be the motor number
+            if motor_number is None:
+                try:
+                    motor_number = int(line)
+                    continue
+                except ValueError:
+                    pass
+
+            # Other lines should be percentages
+            try:
+                percentage = float(line)
+                percentages.append(percentage)
+            except ValueError:
+                continue
+
+        # Ensure we have exactly 2 percentages, pad with None if needed
+        while len(percentages) < 2:
+            percentages.append(None)
 
         top_2_percent = percentages[0] if len(percentages) > 0 else None
         top_3_percent = percentages[1] if len(percentages) > 1 else None
@@ -359,12 +494,31 @@ class ProgramScraper(BaseScraper):
         if not text:
             return None, None, None
 
-        # Similar to motor parsing
-        number_match = re.search(r"(\d+)", text)
-        boat_number = int(number_match.group(1)) if number_match else None
+        # Clean the text and split by lines
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
 
-        percentages = re.findall(r"(\d+(?:\.\d+)?)%?", text)
-        percentages = [float(p) for p in percentages[1:3]]  # Skip first (boat number)
+        boat_number = None
+        percentages = []
+
+        for line in lines:
+            # First line should be the boat number
+            if boat_number is None:
+                try:
+                    boat_number = int(line)
+                    continue
+                except ValueError:
+                    pass
+
+            # Other lines should be percentages
+            try:
+                percentage = float(line)
+                percentages.append(percentage)
+            except ValueError:
+                continue
+
+        # Ensure we have exactly 2 percentages, pad with None if needed
+        while len(percentages) < 2:
+            percentages.append(None)
 
         top_2_percent = percentages[0] if len(percentages) > 0 else None
         top_3_percent = percentages[1] if len(percentages) > 1 else None
